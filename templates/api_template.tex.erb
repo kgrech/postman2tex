@@ -1,0 +1,36 @@
+\subsection{<%= @api_name %>}
+
+<% if (@api_description != nil) then %>
+\subsubsection{Description}
+<%= @api_description %>
+<% end %>
+
+\subsubsection{URL}
+<%= @api_url %>
+
+\subsubsection{Method}
+<%= @api_method %>
+
+<% if !@headers.empty? then %>
+\subsubsection{Headers}
+
+\begin{tabular}{|p{0.5\textwidth}|p{0.5\textwidth}|}
+	\hline
+	Header & Value  \\ \hline
+	<% @headers.each do |h| %>
+	<%=h[0]%> & <%=h[1]%>\\ \hline
+	<% end %>
+\end{tabular}
+<% end %>
+
+<% if @request_json != nil then %>
+\subsubsection{Request Body}
+   	\lstinputlistingbox[style=json, frame=ltbr]{<%=@request_json%>}
+<% end %>
+   	
+<% @response_examples.each do |ex| %>
+\subsubsection{Response Example}
+	Status: <%=ex[0]%>
+
+	\lstinputlistingbox[style=json, frame=ltbr]{<%=ex[1]%>}
+<% end %>
