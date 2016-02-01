@@ -42,6 +42,8 @@ FileUtils::mkdir_p SOURCE
 
 postmanFiles = Dir.glob("#{folder}/*")
 
+api_count = 0
+
 output_files = postmanFiles.map do |file| 
 	puts "Processing #{file}..."
 
@@ -53,6 +55,7 @@ output_files = postmanFiles.map do |file|
 	includes = (parsed['order'] || []).map {|request_id| "#{OUTPUT}/api_#{collection_id}_#{request_id}.tex"}
 
 	requests = parsed['requests'] || []
+	api_count = api_count + requests.length
 	requests.each do |request|
 		request_id = request['id']
 
@@ -73,14 +76,19 @@ output_files = postmanFiles.map do |file|
 		end
 
 
-		responses = request['responses'].each_with_index.map do |response, i| #Parsing response examples
-			text = response['text']
-			status = "#{response['responseCode']['code']} - #{response['responseCode']['name']}"
-			response_file = "#{SOURCE}/#{collection_id}_#{request_id}_#{i}.response.json"
-			write_listing(response_file,  JSON.pretty_generate(JSON.parse(text)))
-			[status, response_file]
+		responses_json = request['responses']
+		if !responses_json.nil?
+			responses = responses_json.each_with_index.map do |response, i| #Parsing response examples
+				text = response['text']
+				status = "#{response['responseCode']['code']} - #{response['responseCode']['name']}"
+				response_file = "#{SOURCE}/#{collection_id}_#{request_id}_#{i}.response.json"
+				write_listing(response_file,  JSON.pretty_generate(JSON.parse(text)))
+				[status, response_file]
+			end
+			context[:response_examples] = responses
+		else
+			context[:response_examples] = []
 		end
-		context[:response_examples] = responses
 
 		process_erb_file("#{TEMPLATE_DIR}/api_template.tex.erb", "#{OUTPUT}/api_#{collection_id}_#{request_id}.tex", context)
 	end
@@ -97,3 +105,5 @@ end
 context = Erubis::Context.new
 context[:includes] = output_files
 process_erb_file("#{TEMPLATE_DIR}/api_chapter_template.tex.erb", "#{OUTPUT}/api_chapter.tex", context)
+
+puts "API count: #{api_count}"
